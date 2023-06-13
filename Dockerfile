@@ -11,8 +11,8 @@ COPY ./index.html /usr/share/nginx/html/index.html
 ## Step 3:
 # Install packages from requirements.txt
 # hadolint ignore=DL3013
-RUN python3 -m pip install --upgrade pip &&\
-    python3 -m pip install --trusted-host pypi.python.org -r requirements.txt
+#RUN python3 -m pip install --upgrade pip &&\
+#   python3 -m pip install --trusted-host pypi.python.org -r requirements.txt
 #RUN make install
 
 ## Step 4:
