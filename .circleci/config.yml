@@ -51,7 +51,7 @@ jobs:
       - image: cimg/python:3.7.16
         auth:
           username: anhanh2212
-          password: Docker@2023
+          password: ******
     steps:
       - checkout
       - setup_remote_docker:
@@ -65,7 +65,7 @@ jobs:
           name: Upload Docker to Dockerhub
           command: |
             echo "Docker ID and Image: buildcusnginx"
-            docker login -u="anhanh2212" -p="Docker@2023"
+            docker login -u="anhanh2212" -p="******"
             docker tag buildcusnginx anhanh2212/buildcusnginx:v1.0.0
             docker push anhanh2212/buildcusnginx:v1.0.0
 
