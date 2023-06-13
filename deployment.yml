@@ -20,11 +20,11 @@ spec:
         image: anhanh2212/buildcusnginx:v1.0.0
         imagePullPolicy: "Always"
         ports:
-        - containerPort: 3000
+        - containerPort: 80
         readinessProbe:
           httpGet:
             path: /
-            port: 3000
+            port: 80
   strategy:
     type: RollingUpdate
     rollingUpdate:
