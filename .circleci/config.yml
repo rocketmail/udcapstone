@@ -201,7 +201,7 @@ workflows:
             - create-service
       - aws-eks/update-container-image:
           cluster-name: nginxcustomcluster
-          container-image-updates: "rolling-deployment-container=anhanh2212/buildcusnginx:v1.0.0"
+          container-image-updates: "newcontainer=anhanh2212/buildcusnginx:v1.0.0"
           requires:
             - create-deployment
           resource-name: deployment/deploy-anh

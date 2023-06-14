@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - image: anhanh2212/buildcusnginx:v1.0.0
-          name: deploy-anh
+          name: newcontainer
           imagePullPolicy: Always
           ports:
             - containerPort: 80
