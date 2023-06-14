@@ -51,7 +51,7 @@ jobs:
       - image: cimg/python:3.7.16
         auth:
           username: anhanh2212
-          password: ******
+          password: Docker@2023
     steps:
       - checkout
       - setup_remote_docker:
@@ -65,7 +65,7 @@ jobs:
           name: Upload Docker to Dockerhub
           command: |
             echo "Docker ID and Image: buildcusnginx"
-            docker login -u="anhanh2212" -p="******"
+            docker login -u="anhanh2212" -p="Docker@2023"
             docker tag buildcusnginx anhanh2212/buildcusnginx:v1.0.0
             docker push anhanh2212/buildcusnginx:v1.0.0
 
@@ -156,7 +156,7 @@ jobs:
           install-kubectl: true
       - kubernetes/create-or-update-resource:
           resource-file-path: ./service.yml
-          resource-name: service/rolling-service
+          resource-name: service/service-anh
 
   create-deployment:
     docker:
@@ -174,7 +174,7 @@ jobs:
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: ./deployment.yml
-          resource-name: deployment/rolling-app
+          resource-name: deployment/deploy-anh
 
 workflows:
   default:
@@ -184,25 +184,25 @@ workflows:
           requires: 
             - build-lint
       - create-cluster:
-          cluster-name: capstone
+          cluster-name: nginxcustomcluster
           requires:
             - upload-docker
       - check-cluster:
-          cluster-name: capstone
+          cluster-name: nginxcustomcluster
           requires:
             - create-cluster
       - create-service:
-          cluster-name: capstone
+          cluster-name: nginxcustomcluster
           requires:
             - check-cluster
       - create-deployment:
-          cluster-name: capstone
+          cluster-name: nginxcustomcluster
           requires:
             - create-service
       - aws-eks/update-container-image:
-          cluster-name: capstone
+          cluster-name: nginxcustomcluster
           container-image-updates: "rolling-deployment-container=anhanh2212/buildcusnginx:v1.0.0"
           requires:
             - create-deployment
-          resource-name: deployment/rolling-app
+          resource-name: deployment/deploy-anh
       
