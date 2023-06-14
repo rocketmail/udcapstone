@@ -50,8 +50,8 @@ jobs:
     docker:
       - image: cimg/python:3.7.16
         auth:
-          username: anhanh2212
-          password: Docker@2023
+          username: userdocker
+          password: passworddocker
     steps:
       - checkout
       - setup_remote_docker:
@@ -65,9 +65,9 @@ jobs:
           name: Upload Docker to Dockerhub
           command: |
             echo "Docker ID and Image: buildcusnginx"
-            docker login -u="anhanh2212" -p="Docker@2023"
-            docker tag buildcusnginx anhanh2212/buildcusnginx:v1.0.0
-            docker push anhanh2212/buildcusnginx:v1.0.0
+            docker login -u="userdocker" -p="passworddocker"
+            docker tag buildcusnginx userdocker/buildcusnginx:v1.0.0
+            docker push userdocker/buildcusnginx:v1.0.0
 
   create-cluster:
     docker:
@@ -137,7 +137,7 @@ jobs:
           cluster-name: << parameters.cluster-name >>
       - run:
           command: |
-            kubectl create deploy anhanh2212 --image=anhanh2212/buildcusnginx:v1.0.0
+            kubectl create deploy userdocker --image=userdocker/buildcusnginx:v1.0.0
             kubectl get deploy,rs,svc,pods
           name: Deploy cluster
 
@@ -201,7 +201,7 @@ workflows:
             - create-service
       - aws-eks/update-container-image:
           cluster-name: nginxcustomcluster
-          container-image-updates: "newcontainer=anhanh2212/buildcusnginx:v1.0.0"
+          container-image-updates: "newcontainer=userdocker/buildcusnginx:v1.0.0"
           requires:
             - create-deployment
           resource-name: deployment/deploy-anh
