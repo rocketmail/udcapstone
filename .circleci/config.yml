@@ -1,7 +1,7 @@
 # Python CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
-#
+# Reference https://github.com/andresaaap/cicd-only-deploying-circleci/blob/main/.circleci/config.yml
 version: 2.1
 orbs:
   aws-eks: circleci/aws-eks@2.2.0
@@ -46,32 +46,33 @@ jobs:
             . venv/bin/activate
             make lint 
 
-  upload-docker:
+  push-image-to-dockerhub:
     docker:
-      - image: cimg/python:3.7.16
+      - image: python:3.7.3-stretch
         auth:
-          username: userdocker
-          password: passworddocker
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.14
+      - setup_remote_docker
       - run:
-          name: Build docker container
+          name: Build new Docker Image
           command: |
-            docker build -t buildcusnginx .
+            echo "Build image and add a descriptive tag"
+            docker build --tag=buildcusnginx .
             docker image ls
       - run:
-          name: Upload Docker to Dockerhub
+          name: Public Docker Image to Dockerhub
           command: |
-            echo "Docker ID and Image: buildcusnginx"
-            docker login -u="userdocker" -p="passworddocker"
-            docker tag buildcusnginx userdocker/buildcusnginx:v1.0.0
-            docker push userdocker/buildcusnginx:v1.0.0
+            echo "Authenticate & tag"
+            docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
+            docker tag buildcusnginx $DOCKERHUB_USERNAME/buildcusnginx:v1.0.0
+            echo "Push image to a docker repository"
+            docker push $DOCKERHUB_USERNAME/buildcusnginx:v1.0.0
 
   create-cluster:
     docker:
-      - image: cimg/python:3.10
+      - image: python:3.7.3-stretch
     parameters:
       cluster-name:
         description: |
@@ -82,68 +83,74 @@ jobs:
       - run:
           name: Installing AWS CLI
           command: |
-            apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
+            apk add --update ansible
+            pip install awscli
+            # apt-get update && sudo apt-get install -yy less
+            # curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            # unzip awscliv2.zip
+            # sudo ./aws/install
             aws --version
       - run:
           name: Check existing cluster
           command: |
-            export OLD_CLUSTER=$(aws eks list-clusters --query 'clusters' --output text | tr '\t' '\n' | grep << parameters.cluster-name >>)
-            echo OLD_CLUSTER: "${OLD_CLUSTER}"
+            # export OLD_CLUSTER=$(aws eks list-clusters --query 'clusters' --output text | tr '\t' '\n' | grep << parameters.cluster-name >>)
+            # echo OLD_CLUSTER: "${OLD_CLUSTER}"
 
-            if [ "$OLD_CLUSTER" == << parameters.cluster-name >> ]; then
-              echo "Found OLD_CLUSTER !!"
-              circleci step halt
+            # if [ "$OLD_CLUSTER" == << parameters.cluster-name >> ]; then
+            #   echo "Found OLD_CLUSTER !!"
+            #   circleci step halt
+            # else
+            #   echo "Not Found OLD_CLUSTER !!"
+            # fi
+            CLUSTER=nginxcustomcluster
+            CHECK_NAME=$(aws eks list-clusters | jq -r ".clusters" | grep $CLUSTER || true)
+            if [ "$CHECK_NAME" != "" ]; then
+              echo "There is already a cluster by this name;"
+              exit 1
             else
-              echo "Not Found OLD_CLUSTER !!"
+              echo "No cluster by this name $CLUSTER"
             fi
       - aws-eks/create-cluster:
           cluster-name: << parameters.cluster-name >>
 
-  check-cluster:
-    docker:
-      - image: cimg/python:3.10
-    parameters:
-      cluster-name:
-        description: |
-          Name of the EKS cluster
-        type: string
-    steps:
-      - checkout
-      - kubernetes/install:
-          kubectl-version: v1.22.0
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-      - run:
-          command: |
-            kubectl get services
-            kubectl get nodes
-          name: Test cluster
-    
+  # list-cluster:
+  #   docker:
+  #     - image: python:3.7.3-stretch
+  #   parameters:
+  #     cluster-name:
+  #       description: |
+  #         Name of the EKS cluster
+  #       type: string
+  #   steps:
+  #     - checkout
+  #     - kubernetes/install
+  #     - aws-eks/update-kubeconfig-with-authenticator:
+  #         cluster-name: << parameters.cluster-name >>
+  #     - run:
+  #         name: List kubernetes pods
+  #         command: |
+  #           kubectl get deploy,rs,svc,pods
   deploy-cluster:
     docker:
-      - image: cimg/python:3.10
+      - image: python:3.7.3-stretch
     parameters:
       cluster-name:
         description: |
           Name of the EKS cluster
         type: string
     steps:
-      - kubernetes/install:
-          kubectl-version: v1.22.0
+      - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
       - run:
           command: |
-            kubectl create deploy userdocker --image=userdocker/buildcusnginx:v1.0.0
+            kubectl create deploy $DOCKERHUB_USERNAME --image=$DOCKERHUB_USERNAME/buildcusnginx:v1.0.0
             kubectl get deploy,rs,svc,pods
           name: Deploy cluster
 
   create-service:
     docker:
-      - image: cimg/python:3.10
+      - image: python:3.7.3-stretch
     parameters:
       cluster-name:
         description: |
@@ -160,7 +167,7 @@ jobs:
 
   create-deployment:
     docker:
-      - image: cimg/python:3.10
+      - image: python:3.7.3-stretch
     parameters:
       cluster-name:
         description: |
@@ -180,28 +187,29 @@ workflows:
   default:
     jobs:
       - build-lint
-      - upload-docker:
+      - push-image-to-dockerhub:
           requires: 
             - build-lint
       - create-cluster:
           cluster-name: nginxcustomcluster
           requires:
-            - upload-docker
-      - check-cluster:
-          cluster-name: nginxcustomcluster
-          requires:
-            - create-cluster
+            - push-image-to-dockerhub
+      # - list-cluster:
+      #     cluster-name: nginxcustomcluster
+      #     requires:
+      #       - create-cluster
       - create-service:
           cluster-name: nginxcustomcluster
           requires:
-            - check-cluster
+            #- list-cluster
+            - create-cluster
       - create-deployment:
           cluster-name: nginxcustomcluster
           requires:
             - create-service
       - aws-eks/update-container-image:
           cluster-name: nginxcustomcluster
-          container-image-updates: "newcontainer=userdocker/buildcusnginx:v1.0.0"
+          container-image-updates: "newcontainer=$DOCKERHUB_USERNAME/buildcusnginx:v1.0.0"
           requires:
             - create-deployment
           resource-name: deployment/deploy-anh

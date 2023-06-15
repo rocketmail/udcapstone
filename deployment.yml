@@ -1,3 +1,4 @@
+#Reference https://github.com/andresaaap/simple-html-rolling-update-kubernetes/
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,15 +6,11 @@ metadata:
   labels:
     app: deploy-anh
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: deploy-anh
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
+      role: rolling-update
   template:
     metadata:
       labels:
@@ -25,6 +22,12 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-              
-      imagePullSecrets:
-        - name: regcred
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
