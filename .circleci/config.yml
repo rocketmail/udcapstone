@@ -185,32 +185,33 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-lint
-      - push-image-to-dockerhub:
-          requires: 
-            - build-lint
-      # - create-cluster:
+      # - build-lint
+      # - push-image-to-dockerhub:
+      #     requires: 
+      #       - build-lint
+      # # - create-cluster:
+      # #     cluster-name: nginxcustomcluster1
+      # #     requires:
+      # #       - push-image-to-dockerhub
+      # # - list-cluster:
+      # #     cluster-name: nginxcustomcluster1
+      # #     requires:
+      # #       - create-cluster
+      # - create-service:
       #     cluster-name: nginxcustomcluster1
       #     requires:
+      #       #- list-cluster
+      #       #- create-cluster
       #       - push-image-to-dockerhub
-      # - list-cluster:
+      # - create-deployment:
       #     cluster-name: nginxcustomcluster1
       #     requires:
-      #       - create-cluster
-      - create-service:
+      #       - create-service
+      # - aws-eks/update-container-image:
+      #     cluster-name: nginxcustomcluster1
+      #     container-image-updates: "newcontainer=$DOCKERHUB_USERNAME/buildcusnginx:v1.0.0"
+      #     requires:
+      #       - create-deployment
+      #     resource-name: deployment/deploy-anh
+      - aws-eks/delete-cluster:
           cluster-name: nginxcustomcluster1
-          requires:
-            #- list-cluster
-            #- create-cluster
-            - push-image-to-dockerhub
-      - create-deployment:
-          cluster-name: nginxcustomcluster1
-          requires:
-            - create-service
-      - aws-eks/update-container-image:
-          cluster-name: nginxcustomcluster1
-          container-image-updates: "newcontainer=$DOCKERHUB_USERNAME/buildcusnginx:v1.0.0"
-          requires:
-            - create-deployment
-          resource-name: deployment/deploy-anh
-      
