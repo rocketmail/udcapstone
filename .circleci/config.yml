@@ -189,10 +189,10 @@ workflows:
       - push-image-to-dockerhub:
           requires: 
             - build-lint
-      - create-cluster:
-          cluster-name: nginxcustomcluster1
-          requires:
-            - push-image-to-dockerhub
+      # - create-cluster:
+      #     cluster-name: nginxcustomcluster1
+      #     requires:
+      #       - push-image-to-dockerhub
       # - list-cluster:
       #     cluster-name: nginxcustomcluster1
       #     requires:
@@ -201,7 +201,8 @@ workflows:
           cluster-name: nginxcustomcluster1
           requires:
             #- list-cluster
-            - create-cluster
+            #- create-cluster
+            - push-image-to-dockerhub
       - create-deployment:
           cluster-name: nginxcustomcluster1
           requires:
