@@ -10,11 +10,11 @@ spec:
   selector:
     matchLabels:
       app: deploy-anh
-      role: rolling-update
   template:
     metadata:
       labels:
         app: deploy-anh
+        role: rolling-update
     spec:
       containers:
         - image: anhanh2212/buildcusnginx:v1.0.0
