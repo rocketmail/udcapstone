@@ -83,7 +83,6 @@ jobs:
       - run:
           name: Installing AWS CLI
           command: |
-            apk add --update ansible
             pip install awscli
             # apt-get update && sudo apt-get install -yy less
             # curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
