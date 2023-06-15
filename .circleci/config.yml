@@ -101,7 +101,7 @@ jobs:
             # else
             #   echo "Not Found OLD_CLUSTER !!"
             # fi
-            CLUSTER=nginxcustomcluster
+            CLUSTER=nginxcustomcluster1
             CHECK_NAME=$(aws eks list-clusters | jq -r ".clusters" | grep $CLUSTER || true)
             if [ "$CHECK_NAME" != "" ]; then
               echo "There is already a cluster by this name;"
@@ -190,24 +190,24 @@ workflows:
           requires: 
             - build-lint
       - create-cluster:
-          cluster-name: nginxcustomcluster
+          cluster-name: nginxcustomcluster1
           requires:
             - push-image-to-dockerhub
       # - list-cluster:
-      #     cluster-name: nginxcustomcluster
+      #     cluster-name: nginxcustomcluster1
       #     requires:
       #       - create-cluster
       - create-service:
-          cluster-name: nginxcustomcluster
+          cluster-name: nginxcustomcluster1
           requires:
             #- list-cluster
             - create-cluster
       - create-deployment:
-          cluster-name: nginxcustomcluster
+          cluster-name: nginxcustomcluster1
           requires:
             - create-service
       - aws-eks/update-container-image:
-          cluster-name: nginxcustomcluster
+          cluster-name: nginxcustomcluster1
           container-image-updates: "newcontainer=$DOCKERHUB_USERNAME/buildcusnginx:v1.0.0"
           requires:
             - create-deployment
