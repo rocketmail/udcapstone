@@ -145,10 +145,14 @@ workflows:
       - push-image-to-dockerhub:
           requires: 
             - build-lint
-      - create-service:
+      - create-cluster:
           cluster-name: nginxcustomcluster1
           requires:
             - push-image-to-dockerhub
+      - create-service:
+          cluster-name: nginxcustomcluster1
+          requires:
+            - create-cluster
       - create-deployment:
           cluster-name: nginxcustomcluster1
           requires:
