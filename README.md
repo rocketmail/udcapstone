@@ -1,5 +1,4 @@
 # udcapstone
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/rocketmail/udcapstone/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/rocketmail/udcapstone/tree/main)
 
 1. Screenshot of the Circle CI or Jenkins pipeline showing all stages passed successfully(https://app.circleci.com/pipelines/github/rocketmail/udcapstone?branch=main)
 ![CircleCI passsed](image.png)
